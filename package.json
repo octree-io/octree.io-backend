@@ -1,0 +1,49 @@
+{
+  "name": "octree.io-backend",
+  "version": "1.0.0",
+  "description": "Backend service for octree.io",
+  "main": "src/server.ts",
+  "dependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/express": "^4.17.12",
+    "@types/morgan": "^1.9.2",
+    "chai-http": "^5.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.17.1",
+    "knex": "^3.1.0",
+    "morgan": "^1.10.0",
+    "pg": "^8.6.0",
+    "ts-node": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/chai": "^4.2.21",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.12",
+    "@types/mocha": "^10.0.8",
+    "@types/morgan": "^1.9.2",
+    "axios": "^1.7.7",
+    "chai": "^5.1.1",
+    "express": "^4.17.1",
+    "mocha": "^10.7.3",
+    "morgan": "^1.10.0",
+    "nodemon": "^3.1.7",
+    "ts-node": "^10.1.0",
+    "typescript": "^5.6.2"
+  },
+  "scripts": {
+    "start": "nodemon src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/octree-io/octree.io-backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/octree-io/octree.io-backend/issues"
+  },
+  "homepage": "https://github.com/octree-io/octree.io-backend#readme"
+}
