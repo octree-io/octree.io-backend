@@ -1,4 +1,4 @@
-const typeMappings = {
+export const typeMappings = {
   python: {
     "int": "int",
     "float": "float",
