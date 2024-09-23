@@ -27,4 +27,9 @@ export interface Problem {
   topics: string[];
   companies: string[];
   followUp?: string;
+
+  // This is for custom problemCategory and is a pair of language:harnessCode
+  customHarness: {
+    [key: string]: string;
+  };
 }
