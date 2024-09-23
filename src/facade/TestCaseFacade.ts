@@ -1,22 +1,39 @@
+import { cppBasicHarness } from "../test_harness/basic/cppBasic";
+import { csharpBasicHarness } from "../test_harness/basic/csharpBasic";
+import { javaBasicHarness } from "../test_harness/basic/javaBasic";
 import { pythonBasicHarness } from "../test_harness/basic/pythonBasic";
+import { rubyBasicHarness } from "../test_harness/basic/rubyBasic";
+import { rustBasicHarness } from "../test_harness/basic/rustBasic";
 
-const problems = {
-  "two-sum": {
-    
-  }
+const languageMapping: { [key: string]: any } = {
+  python: {
+    basic: pythonBasicHarness,
+  },
+  java: {
+    basic: javaBasicHarness,
+  },
+  cpp: {
+    basic: cppBasicHarness,
+  },
+  csharp: {
+    basic: csharpBasicHarness,
+  },
+  rust: {
+    basic: rustBasicHarness,
+  },
+  ruby: {
+    basic: rubyBasicHarness,
+  },
 };
 
 class TestCaseFacade {
   wrapTestHarness(language: string, code: string, problem: string) {
+    // TODO: Pull problem document from DB
+
     const args = {
       "nums": "int[]",
       "target": "int"
     };
-
-    let answerAnyOrder = false;
-    if (problem === "two-sum") {
-      answerAnyOrder = true;
-    }
 
     const testCases = [
       {
@@ -26,7 +43,25 @@ class TestCaseFacade {
       }
     ];
 
-    return pythonBasicHarness(code, args, testCases, answerAnyOrder);
+    let answerAnyOrder = false;
+    if (problem === "two-sum") {
+      answerAnyOrder = true;
+    }
+
+    // const args = {
+    //   s: "string"
+    // };
+
+    // const testCases = [
+    //   {
+    //     s: "abcdef",
+    //     output: true,
+    //   },
+    // ];
+
+    const harness = languageMapping[language]?.["basic"]?.(code, args, testCases, answerAnyOrder);
+    console.log(harness);
+    return harness || "";
   }
 }
 
