@@ -4,6 +4,7 @@ import { pythonDataStructures } from "../data_structures/pythonDataStructures";
 export const pythonBasicHarness = (code: string, args: any, testCases: any[], answerAnyOrder: boolean = false) => `from collections import *
 from array import *
 from bisect import *
+from typing import *
 import collections
 import array
 import bisect
