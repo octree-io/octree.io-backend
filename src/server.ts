@@ -12,11 +12,17 @@ const router: Express = express();
 router.use(morgan("dev")); // Logging
 router.use(express.urlencoded({ extended: false }));
 router.use(express.json());
-router.use(cors());
+router.use(cors({
+  origin: true,
+  credentials: true,
+}));
 router.use(cookieParser());
 
 router.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
+    const origin = req.headers.origin;
+
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Headers", "origin, X-Requested-With,Content-Type,Accept, Authorization");
 
     if (req.method === "OPTIONS") {
