@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  google_id VARCHAR(255),
+  username VARCHAR(255),
+  email VARCHAR(255) NOT NULL,
+  password VARCHAR(255),
+  profile_pic TEXT,
+  created_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  token TEXT NOT NULL,
+  expired_at TIMESTAMP NOT NULL,
+  CONSTRAINT fk_user
+    FOREIGN KEY(user_id) 
+    REFERENCES users(id)
+    ON DELETE CASCADE
+);

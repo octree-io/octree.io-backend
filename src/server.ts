@@ -5,6 +5,7 @@ import echoRoutes from "./routes/echo.routes";
 import authRoutes from "./routes/auth.routes";
 import executorRoutes from "./routes/executor.routes";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 const router: Express = express();
 
@@ -12,6 +13,7 @@ router.use(morgan("dev")); // Logging
 router.use(express.urlencoded({ extended: false }));
 router.use(express.json());
 router.use(cors());
+router.use(cookieParser());
 
 router.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", "*");
