@@ -171,7 +171,7 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
     .first();
 
   if (!tokenInDb) {
-    return res.status(403).json({ message: 'Invalid refresh token' });
+    return res.status(403).json({ message: 'Refresh token not found' });
   }
 
   const currentTime = new Date();
