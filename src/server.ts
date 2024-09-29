@@ -35,9 +35,8 @@ router.use((req, res, next) => {
     res.header("Access-Control-Allow-Headers", "origin, X-Requested-With,Content-Type,Accept, Authorization");
 
     if (req.method === "OPTIONS") {
-      res.header("Access-Control-Allow-Origin", origin);
-      res.header("Access-Control-Allow-Methods", "GET PATCH DELETE POST");
-      return res.status(200).json({});
+        res.header("Access-Control-Allow-Methods", "GET PATCH DELETE POST");
+        return res.status(200).json({});
     }
 
     next();
@@ -48,10 +47,10 @@ router.use("/auth", authRoutes);
 router.use("/execute", executorRoutes);
 
 router.use((req, res, next) => {
-  const error = new Error("not found");
-  return res.status(404).json({
-      message: error.message
-  });
+    const error = new Error("not found");
+    return res.status(404).json({
+        message: error.message
+    });
 });
 
 const httpServer = http.createServer(router);
