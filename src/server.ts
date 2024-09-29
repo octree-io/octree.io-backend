@@ -6,6 +6,15 @@ import authRoutes from "./routes/auth.routes";
 import executorRoutes from "./routes/executor.routes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { Server } from "socket.io";
+import { LobbyNamespace } from "./socket_events/lobby/LobbyNamespace";
+
+export interface DecodedToken {
+  userId: number;
+  username: string;
+  profilePic: string;
+  expiredAt: Date;
+}
 
 const router: Express = express();
 
@@ -45,6 +54,16 @@ router.use((req, res, next) => {
 });
 
 const httpServer = http.createServer(router);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: true,
+    credentials: true,
+  }
+});
+
+new LobbyNamespace(io);
+
 const PORT: any = process.env.SERVER_PORT ?? 8000;
 httpServer.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
 
