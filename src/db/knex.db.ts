@@ -8,9 +8,9 @@ const knexConfig: { [key: string]: Knex.Config } = {
     client: "pg",
     connection: {
       database: `${process.env.DATABASE}`,
-      user: `${process.env.USER}`,
-      password: `${process.env.PASSWORD}`,
-      host: `${process.env.HOST}`,
+      user: `${process.env.DB_USER}`,
+      password: `${process.env.DB_PASSWORD}`,
+      host: `${process.env.DB_HOST}`,
       port: Number(`${process.env.DB_PORT}`),
     },
     migrations: {
@@ -26,9 +26,9 @@ const knexConfig: { [key: string]: Knex.Config } = {
     client: "pg",
     connection: {
       database: `${process.env.DATABASE}`,
-      user: `${process.env.USER}`,
-      password: `${process.env.PASSWORD}`,
-      host: `${process.env.HOST}`,
+      user: `${process.env.DB_USER}`,
+      password: `${process.env.DB_PASSWORD}`,
+      host: `${process.env.DB_HOST}`,
       port: Number(`${process.env.DB_PORT}`),
     },
     migrations: {
