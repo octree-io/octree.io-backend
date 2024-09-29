@@ -251,6 +251,31 @@ export const logout = async (req: Request, res: Response, next: NextFunction) =>
   }
 };
 
+export const changeUsername = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user;
+  const { desiredUsername } = req.body;
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid user or token" });
+  }
+
+  if (!desiredUsername) {
+    return res.status(400).json({ message: "Invalid desired username" });
+  }
+
+  if (await isUsernameTaken(desiredUsername)) {
+    return res.status(400).json({ message: "Desired username is taken" });
+  }
+
+  const username = user.username;
+
+  await knex("users")
+    .whereRaw("LOWER(username) = ?", username.toLowerCase())
+    .update({ username: desiredUsername });
+
+  return res.status(200).json({ message: "Successfully changed username" });
+};
+
 const isUsernameTaken = async (username: string): Promise<boolean> => {
   const user = await knex("users").whereRaw("LOWER(username) = ?", username.toLowerCase()).first();
   return !!user;
