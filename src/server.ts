@@ -4,6 +4,7 @@ import morgan from "morgan";
 import echoRoutes from "./routes/echo.routes";
 import authRoutes from "./routes/auth.routes";
 import executorRoutes from "./routes/executor.routes";
+import imagesRoutes from "./routes/images.routes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
@@ -45,6 +46,7 @@ router.use((req, res, next) => {
 router.use("/echo", echoRoutes);
 router.use("/auth", authRoutes);
 router.use("/execute", executorRoutes);
+router.use("/images", imagesRoutes);
 
 router.use((req, res, next) => {
     const error = new Error("not found");
