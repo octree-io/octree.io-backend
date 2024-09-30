@@ -19,29 +19,34 @@ const REFRESH_TOKEN_EXPIRY = "30d";
 export const passwordSignup = async (req: Request, res: Response, next: NextFunction) => {
   const { username, email, password } = req.body;
 
-  const existingUser = await knex("users").whereRaw("LOWER(username) = ?", username.toLowerCase()).first();
-  if (existingUser) {
-    return res.status(400).json({ message: "Username already taken" });
+  try {
+    const existingUser = await knex("users").whereRaw("LOWER(username) = ?", username.toLowerCase()).first();
+    if (existingUser) {
+      return res.status(400).json({ message: "Username already taken" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const [newUser] = await knex("users").insert({
+      username,
+      email,
+      password: hashedPassword,
+      profile_pic: getRandomElement(DEFAULT_PROFILE_PICTURES),
+    }).returning('*');
+
+    const accessToken = generateAccessToken({ userId: newUser.id, username: newUser.username });
+    const refreshToken = generateRefreshToken({ userId: newUser.id });
+
+    const refreshTokenExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await saveRefreshTokenToDb(newUser.id, refreshToken, refreshTokenExpiry);
+
+    setRefreshTokenCookie(res, refreshToken);
+
+    return res.json({ accessToken });
+  } catch (error) {
+    console.log("Failed to sign up", error);
+    return res.status(500).json({ message: "Error while signing up" });
   }
-
-  const hashedPassword = await bcrypt.hash(password, 10);
-
-  const [newUser] = await knex("users").insert({
-    username,
-    email,
-    password: hashedPassword,
-    profile_pic: getRandomElement(DEFAULT_PROFILE_PICTURES),
-  }).returning('*');
-
-  const accessToken = generateAccessToken({ userId: newUser.id, username: newUser.username });
-  const refreshToken = generateRefreshToken({ userId: newUser.id });
-
-  const refreshTokenExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  await saveRefreshTokenToDb(newUser.id, refreshToken, refreshTokenExpiry);
-
-  setRefreshTokenCookie(res, refreshToken);
-
-  return res.json({ accessToken });
 };
 
 export const googleSignup = async (req: Request, res: Response, next: NextFunction) => {
@@ -94,33 +99,38 @@ export const googleSignup = async (req: Request, res: Response, next: NextFuncti
 export const passwordLogin = async (req: Request, res: Response, next: NextFunction) => {
   const { username, password } = req.body;
 
-  const user = await knex("users")
-    .whereRaw("LOWER(username) = ?", username.toLowerCase())
-    .first();
+  try {
+    const user = await knex("users")
+      .whereRaw("LOWER(username) = ?", username.toLowerCase())
+      .first();
 
-  if (!user) {
-    return res.status(400).json({ message: 'Invalid credentials' });
+    if (!user) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({ message: 'Invalid credentials' });
+    }
+
+    const refreshTokenExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    const accessToken = generateAccessToken({
+      userId: user.id,
+      username: user.username,
+      profilePic: user.profile_pic,
+      expiredAt: refreshTokenExpiry,
+    });
+    const refreshToken = generateRefreshToken({ userId: user.id });
+
+    await saveRefreshTokenToDb(user.id, refreshToken, refreshTokenExpiry);
+
+    setRefreshTokenCookie(res, refreshToken);
+
+    return res.json({ accessToken });
+  } catch (error) {
+    console.log("Failed to login", error);
+    return res.status(500).json({ message: "Error while logging in" });
   }
-
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid) {
-    return res.status(400).json({ message: 'Invalid credentials' });
-  }
-
-  const refreshTokenExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const accessToken = generateAccessToken({
-    userId: user.id,
-    username: user.username,
-    profilePic: user.profile_pic,
-    expiredAt: refreshTokenExpiry,
-  });
-  const refreshToken = generateRefreshToken({ userId: user.id });
-
-  await saveRefreshTokenToDb(user.id, refreshToken, refreshTokenExpiry);
-
-  setRefreshTokenCookie(res, refreshToken);
-
-  return res.json({ accessToken });
 };
 
 export const googleLogin = async (req: Request, res: Response, next: NextFunction) => {
