@@ -3,20 +3,21 @@ import { Server, Socket } from "socket.io";
 import { DecodedToken } from "../../server";
 import { isTokenValid } from "../../utils/tokenValidator";
 import gameRoomFacade from "../../facade/GameRoomFacade";
-import lobbyFacade from "../../facade/LobbyFacade";
 
-export class LobbyNamespace {
+export class GameRoomNamespace {
   private io: Server;
   private namespace;
+  private users: { [key: string]: object };
 
   constructor(io: Server) {
     this.io = io;
-    this.namespace = this.io.of("/lobby");
+    this.namespace = this.io.of("/gameRoom");
+    this.users = {};
 
     this.namespace.on("connection", this.handleConnection.bind(this));
   }
 
-  private async handleConnection(socket: Socket) {
+  private handleConnection(socket: Socket) {
     const token = socket.handshake.auth?.token;
 
     if (!token) {
@@ -35,20 +36,30 @@ export class LobbyNamespace {
     const username = decodedToken.username;
     const profilePic = decodedToken.profilePic;
 
-    console.log(`User ${username} has connected to Lobby`);
+    console.log(`User ${username} has connected to Game Room`);
 
-    socket.emit("currentUsers", await lobbyFacade.getUsers());
+    socket.emit("currentUsers", Object.values(this.users));
     this.namespace.emit("userJoined", { socketId: socket.id, username, profilePic });
 
-    await lobbyFacade.addUserToLobby(username, profilePic, socket.id);
+    this.users[socket.id] = { username, profilePic };
 
     this.handleEvents(socket, decodedToken);
   }
 
   private handleEvents(socket: Socket, decodedToken: DecodedToken) {
+    socket.on("joinRoom", (roomId) => this.handleJoinRoom(socket, roomId));
     socket.on("message", (message) => this.handleMessage(socket, decodedToken, message));
-    socket.on("retrieveRooms", () => this.handleRetrieveRooms(socket));
     socket.on("disconnect", () => this.handleDisconnect(socket));
+  }
+
+  private async handleJoinRoom(socket: Socket, roomId: string) {
+    if (!await gameRoomFacade.doesRoomExist(roomId)) {
+      socket.emit("noSuchRoom");
+      return;
+    }
+
+    socket.join(roomId);
+    this.users[socket.id] = { ...this.users[socket.id], roomId };
   }
 
   private handleMessage(socket: Socket, decodedToken: DecodedToken, message: string) {
@@ -61,18 +72,14 @@ export class LobbyNamespace {
     });
   }
 
-  private async handleRetrieveRooms(socket: Socket) {
-    await gameRoomFacade.retrieveRooms();
-  }
-
-  private async handleDisconnect(socket: Socket) {
-    const user: any = await lobbyFacade.getUser(socket.id);
+  private handleDisconnect(socket: Socket) {
+    const user: any = this.users[socket.id];
     if (!user) {
       return;
     }
-    const username = user.username;
-    console.log(`User ${username} has disconnected from Lobby`);
-    this.namespace.emit("userLeft", { ...user });
-    await lobbyFacade.removeUserFromLobby(username, socket.id);
+    console.log(`User ${user.username} has disconnected from Game Room`);
+    socket.leave(user.roomId);
+    this.namespace.emit("userLeft", { socketId: socket.id, ...user });
+    delete this.users[socket.id];
   }
 }

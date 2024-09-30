@@ -4,7 +4,11 @@
   "description": "Backend service for octree.io",
   "main": "src/server.ts",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.658.1",
     "@aws-sdk/client-s3": "^3.658.1",
+    "@aws-sdk/lib-dynamodb": "^3.658.1",
+    "@aws-sdk/types": "^3.654.0",
+    "@aws-sdk/util-dynamodb": "^3.658.1",
     "@types/axios": "^0.14.0",
     "@types/express": "^4.17.12",
     "@types/morgan": "^1.9.2",
@@ -17,6 +21,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "knex": "^3.1.0",
+    "mongodb": "^6.9.0",
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "path": "^0.12.7",
@@ -47,7 +52,7 @@
     "typescript": "^5.6.2"
   },
   "scripts": {
-    "start": "nodemon src/server.ts",
+    "start": "nodemon --signal SIGTERM src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

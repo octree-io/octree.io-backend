@@ -5,10 +5,12 @@ import echoRoutes from "./routes/echo.routes";
 import authRoutes from "./routes/auth.routes";
 import executorRoutes from "./routes/executor.routes";
 import imagesRoutes from "./routes/images.routes";
+import gameRoomRoutes from "./routes/gameroom.routes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import { LobbyNamespace } from "./socket_events/lobby/LobbyNamespace";
+import lobbyFacade from "./facade/LobbyFacade";
 
 export interface DecodedToken {
   userId: number;
@@ -47,6 +49,7 @@ router.use("/echo", echoRoutes);
 router.use("/auth", authRoutes);
 router.use("/execute", executorRoutes);
 router.use("/images", imagesRoutes);
+router.use("/game-room", gameRoomRoutes);
 
 router.use((req, res, next) => {
     const error = new Error("not found");
@@ -65,6 +68,12 @@ const io = new Server(httpServer, {
 });
 
 new LobbyNamespace(io);
+
+process.on("SIGINT", async () => {
+  console.log("Got SIGINT, shutting down and wiping out lobby users");
+  await lobbyFacade.removeAllUsers();
+  process.exit();
+});
 
 const PORT: any = process.env.SERVER_PORT ?? 8000;
 httpServer.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
