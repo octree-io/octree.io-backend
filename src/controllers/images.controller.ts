@@ -60,9 +60,7 @@ export const changeProfilePic = async (req: Request, res: Response, next: NextFu
     };
 
     const uploadCommand = new PutObjectCommand(params);
-    const uploadResult = await s3.send(uploadCommand);
-
-    console.log(uploadResult);
+    await s3.send(uploadCommand);
 
     await knex("users").where({ username }).update({
       profile_pic: `https://${CDN_URL}/${fileName}`,
