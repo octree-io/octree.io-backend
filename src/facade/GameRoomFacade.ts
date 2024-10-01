@@ -19,7 +19,9 @@ class GameRoomFacade {
 
   async retrieveRooms() {
     const rooms = await knex("game_rooms").select();
-    return rooms;
+    return rooms.map((room: any) => ({
+      roomId: room.room_id,
+    }));
   }
 
   async doesRoomExist(roomId: string) {

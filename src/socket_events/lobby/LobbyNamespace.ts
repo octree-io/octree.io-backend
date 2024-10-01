@@ -37,6 +37,7 @@ export class LobbyNamespace {
 
     console.log(`User ${username} has connected to Lobby`);
 
+    socket.emit("activeRooms", await gameRoomFacade.retrieveRooms());
     socket.emit("currentUsers", await lobbyFacade.getUsers());
     this.namespace.emit("userJoined", { socketId: socket.id, username, profilePic });
 
@@ -62,7 +63,8 @@ export class LobbyNamespace {
   }
 
   private async handleRetrieveRooms(socket: Socket) {
-    await gameRoomFacade.retrieveRooms();
+    const rooms = await gameRoomFacade.retrieveRooms();
+    socket.emit("activeRooms", rooms);
   }
 
   private async handleDisconnect(socket: Socket) {
