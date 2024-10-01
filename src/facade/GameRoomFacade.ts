@@ -4,12 +4,13 @@ import { getRandomString } from "../utils/stringUtil";
 class GameRoomFacade {
   constructor() {}
 
-  async createRoom(username: string) {
+  async createRoom(username: string, roomName: string) {
     const roomId = getRandomString(8);
 
     await knex("game_rooms")
       .insert({
         room_id: roomId,
+        room_name: roomName,
         created_by: username,
         current_problem_id: 1,
       });
@@ -21,6 +22,7 @@ class GameRoomFacade {
     const rooms = await knex("game_rooms").select();
     return rooms.map((room: any) => ({
       roomId: room.room_id,
+      roomName: room.room_name,
     }));
   }
 
