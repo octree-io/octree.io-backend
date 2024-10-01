@@ -11,6 +11,8 @@ import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
 import { LobbyNamespace } from "./socket_events/lobby/LobbyNamespace";
 import lobbyFacade from "./facade/LobbyFacade";
+import gameRoomFacade from "./facade/GameRoomFacade";
+import { GameRoomNamespace } from "./socket_events/game_room/GameRoomNamespace";
 
 export interface DecodedToken {
   userId: number;
@@ -68,12 +70,19 @@ const io = new Server(httpServer, {
 });
 
 new LobbyNamespace(io);
+new GameRoomNamespace(io);
 
-process.on("SIGINT", async () => {
-  console.log("Got SIGINT, shutting down and wiping out lobby users");
+const handleExit = async (type: string) => {
+  console.log(`Got ${type}, shutting down`);
+  console.log("Wiping out Lobby users");
   await lobbyFacade.removeAllUsers();
+  console.log("Wiping out Game Room users");
+  await gameRoomFacade.removeAllUsersFromAllRooms();
   process.exit();
-});
+};
+
+process.on("SIGINT", async () => await handleExit("SIGINT"));
+process.on("SIGTERM", async () => await handleExit("SIGTERM"));
 
 const PORT: any = process.env.SERVER_PORT ?? 8000;
 httpServer.listen(PORT, () => console.log(`The server is running on port ${PORT}`));

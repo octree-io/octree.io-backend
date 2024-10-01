@@ -37,12 +37,39 @@ class GameRoomFacade {
       });
   }
 
+  async getUserBySocketId(socketId: string) {
+    const user = await knex("game_room_users").where({ socket_id: socketId }).first();
+    if (!user) {
+      return null;
+    }
+    return {
+      roomId: user.room_id,
+      username: user.username,
+      profilePic: user.profile_pic,
+      socketId: user.socket_id,
+    };
+  }
+
+  async getUsersInRoom(roomId: string) {
+    const users = await knex("game_room_users").where({ room_id: roomId });
+    return users.map((user: any) => ({
+      roomId: user.room_id,
+      username: user.username,
+      profilePic: user.profile_pic,
+      socketId: user.socket_id,
+    }));
+  }
+
   async removeUserFromRoom(roomId: string, username: string, socketId: string) {
     await knex("game_room_users").where({ room_id: roomId, username, socket_id: socketId }).del();
   }
 
   async deleteRoom(roomId: string) {
     await knex("game_rooms").where({ room_id: roomId }).del();
+  }
+
+  async removeAllUsersFromAllRooms() {
+    await knex("game_room_users").del();
   }
 }
 
