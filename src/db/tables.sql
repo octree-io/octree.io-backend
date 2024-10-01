@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS game_rooms (
   room_id VARCHAR(255) PRIMARY KEY,
   room_name VARCHAR(255),
   created_by VARCHAR(255),
+  round_duration INT DEFAULT 900,
   current_problem_id INT,
   current_round_start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
