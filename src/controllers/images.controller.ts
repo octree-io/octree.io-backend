@@ -4,7 +4,8 @@ import knex from "../db/knex.db";
 import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import path from "path";
 
-const CDN_URL = "cdn.octree.io"
+const CDN_URL = "cdn.octree.io";
+const DO_NOT_DELETE = "DO-NOT-DELETE";
 
 const s3 = new S3Client({
   endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
@@ -18,6 +19,11 @@ const s3 = new S3Client({
 const deletePreviousProfilePic = async (profilePic: string) => {
   if (profilePic.indexOf(CDN_URL) !== -1) {
     const imageName = profilePic.split(`${CDN_URL}/`)[1];
+
+    if (imageName.startsWith(DO_NOT_DELETE)) {
+      console.log(`Skipping deletion for profile picture ${profilePic}`);
+      return;
+    }
 
     try {
       const deleteParams = {
