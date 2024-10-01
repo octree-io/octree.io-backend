@@ -8,7 +8,12 @@ import bcrypt from "bcrypt";
 dotenv.config();
 
 const DEFAULT_PROFILE_PICTURES = [
-  "https://singlecolorimage.com/get/7da5ee/100x100"
+  "https://cdn.octree.io/DO-NOT-DELETE-07edc7.png",
+  "https://cdn.octree.io/DO-NOT-DELETE-38a12f.png",
+  "https://cdn.octree.io/DO-NOT-DELETE-7da5ee.png",
+  "https://cdn.octree.io/DO-NOT-DELETE-b81132.png",
+  "https://cdn.octree.io/DO-NOT-DELETE-ed8d07.png",
+  "https://cdn.octree.io/DO-NOT-DELETE-f2de24.png",
 ];
 
 const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET || "123456";
