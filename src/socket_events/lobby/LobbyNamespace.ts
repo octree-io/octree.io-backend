@@ -74,7 +74,11 @@ export class LobbyNamespace {
     }
     const username = user.username;
     console.log(`User ${username} has disconnected from Lobby`);
-    this.namespace.emit("userLeft", { ...user });
     await lobbyFacade.removeUserFromLobby(username, socket.id);
+
+    const userInstances = await lobbyFacade.getUserInstancesByUsername(username);
+    if (userInstances.length == 0) {
+      this.namespace.emit("userLeft", { ...user });
+    }
   }
 }

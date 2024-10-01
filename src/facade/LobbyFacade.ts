@@ -31,6 +31,11 @@ class LobbyFacade {
     }));
   }
 
+  async getUserInstancesByUsername(username: string) {
+    const users = await knex("lobby_users").where({ username });
+    return users;
+  }
+
   async removeUserFromLobby(username: string, socketId: string) {
     await knex("lobby_users").where({ username, socket_id: socketId }).del();
   }
