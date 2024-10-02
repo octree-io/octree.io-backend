@@ -3,6 +3,7 @@ import { Server, Socket } from "socket.io";
 import { DecodedToken } from "../../server";
 import { isTokenValid } from "../../utils/tokenValidator";
 import gameRoomFacade from "../../facade/GameRoomFacade";
+import eventBus from "../../utils/eventBus";
 
 export class GameRoomNamespace {
   private io: Server;
@@ -13,6 +14,8 @@ export class GameRoomNamespace {
     this.io = io;
     this.namespace = this.io.of("/gameRoom");
     this.roomId = "default";
+
+    eventBus.on("nextRoundStarted", this.handleNextRoundStarted.bind(this));
 
     this.namespace.on("connection", this.handleConnection.bind(this));
   }
@@ -54,12 +57,18 @@ export class GameRoomNamespace {
       return;
     }
 
+    const room = await gameRoomFacade.getRoomById(roomId);
+
     this.roomId = roomId;
     socket.join(this.roomId);
     const username = decodedToken.username;
     const profilePic = decodedToken.profilePic;
 
     socket.emit("currentUsers", await gameRoomFacade.getUsersInRoom(this.roomId));
+    socket.emit("nextRoundStarted", {
+      currentRoundStartTime: room?.currentRoundStartTime,
+      roundDuration: room?.roundDuration * 1000,
+    });
 
     this.namespace.to(this.roomId).emit("userJoined", {
       roomId: this.roomId,
@@ -91,5 +100,11 @@ export class GameRoomNamespace {
     socket.leave(user.roomId);
     this.namespace.emit("userLeft", { ...user });
     await gameRoomFacade.removeUserFromRoom(user.roomId, user.username, user.socketId);
+  }
+
+  private async handleNextRoundStarted(data: { roomId: string, currentRoundStartTime: number, roundDuration: number }) {
+    const currentRoundStartTime = data.currentRoundStartTime;
+    const roundDuration = data.roundDuration;
+    this.namespace.to(data.roomId).emit("nextRoundStarted", { currentRoundStartTime, roundDuration });
   }
 }

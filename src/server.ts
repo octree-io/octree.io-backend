@@ -69,6 +69,11 @@ const io = new Server(httpServer, {
   }
 });
 
+const loadExistingRoomsFromDb = async () => {
+  await gameRoomFacade.loadExistingRooms();
+};
+
+loadExistingRoomsFromDb();
 new LobbyNamespace(io);
 new GameRoomNamespace(io);
 

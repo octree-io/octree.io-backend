@@ -1,4 +1,5 @@
 import knex from "../db/knex.db";
+import eventBus from "../utils/eventBus";
 import { getRandomString } from "../utils/stringUtil";
 
 class GameRoomFacade {
@@ -23,6 +24,9 @@ class GameRoomFacade {
     return rooms.map((room: any) => ({
       roomId: room.room_id,
       roomName: room.room_name,
+      roundDuration: room.round_duration,
+      roundEndCooldownDuration: room.round_end_cooldown_duration,
+      currentRoundStartTime: room.current_round_start_time,
     }));
   }
 
@@ -64,6 +68,21 @@ class GameRoomFacade {
     }));
   }
 
+  async getRoomById(roomId: string) {
+    const room = await knex("game_rooms").where({ room_id: roomId }).first();
+    if (!room) {
+      console.log(`[getRoomById] Room ${roomId} not found`);
+      return;
+    }
+    return {
+      roomId: room.room_id,
+      roomName: room.room_name,
+      roundDuration: room.round_duration,
+      roundEndCooldownDuration: room.round_end_cooldown_duration,
+      currentRoundStartTime: room.current_round_start_time,
+    };
+  }
+
   async removeUserFromRoom(roomId: string, username: string, socketId: string) {
     await knex("game_room_users").where({ room_id: roomId, username, socket_id: socketId }).del();
   }
@@ -74,6 +93,73 @@ class GameRoomFacade {
 
   async removeAllUsersFromAllRooms() {
     await knex("game_room_users").del();
+  }
+
+  async updateCurrentRoundStartTime(roomId: string) {
+    const currentDate = new Date();
+
+    await knex("game_rooms")
+      .where({ room_id: roomId })
+      .update({ current_round_start_time: currentDate });
+
+    return currentDate;
+  }
+
+  async loadExistingRooms() {
+    try {
+      const rooms = await this.retrieveRooms();
+
+      rooms.map(async (room) => {
+        const currentRoundStartTime = room.currentRoundStartTime;
+        const roundDuration = room.roundDuration;
+
+        const currentTime = new Date().getTime();
+        const roundEndTime = new Date(currentRoundStartTime).getTime() + (roundDuration * 1000);
+        const timeRemaining = roundEndTime - currentTime;
+
+        if (timeRemaining <= 0) {
+          console.log(`[loadExistingRooms] Deleting room ${room.roomName} with roomId=[${room.roomId}] due to inactivity or expiration`);
+
+          await this.deleteRoom(room.roomId);
+        } else {
+          await this.scheduleNextRound(room.roomId, timeRemaining);
+        }
+      });
+    } catch (error) {
+      console.log("[loadExistingRooms] Error while loading existing rooms:", error);
+    }
+  }
+
+  async scheduleNextRound(roomId: string, roundDuration: number) {
+    console.log(`[scheduleNextRound] Scheduling next round for room ${roomId} for duration ${roundDuration / 1000}s`);
+
+    setTimeout(async () => {
+      await this.startNextRound(roomId);
+    }, roundDuration);
+  }
+
+  async startNextRound(roomId: string) {
+    const room = await this.getRoomById(roomId);
+    const users = await this.getUsersInRoom(roomId);
+
+    if (!room) {
+      console.log(`[startNextRound] Room ${roomId} does not exist`);
+      return;
+    }
+
+    if (users.length === 0) {
+      console.log(`[startNextRound] Deleting room ${roomId} due to inactivity`);
+      await this.deleteRoom(roomId);
+      return;
+    }
+
+    console.log(`[startNextRound] Starting next round for room ${room.roomName} with roomId ${roomId}`);
+
+    const currentRoundStartTime = (await this.updateCurrentRoundStartTime(roomId)).getTime();
+    const roundDuration = room.roundDuration * 1000;
+    this.scheduleNextRound(roomId, roundDuration);
+
+    eventBus.emit("nextRoundStarted", { roomId, currentRoundStartTime, roundDuration });
   }
 }
 

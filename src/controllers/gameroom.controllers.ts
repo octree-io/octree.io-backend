@@ -19,5 +19,9 @@ export const createGameRoom = async (req: Request, res: Response, next: NextFunc
 
   eventBus.emit("gameRoomCreated", { roomId, roomName });
 
+  setTimeout(async () => {
+    await gameRoomFacade.startNextRound(roomId);
+  }, 100);
+
   return res.status(200).json({ roomId });
 };
