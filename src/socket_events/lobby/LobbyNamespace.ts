@@ -17,6 +17,7 @@ export class LobbyNamespace {
     this.namespace.on("connection", this.handleConnection.bind(this));
 
     eventBus.on("gameRoomCreated", this.handleGameRoomCreated.bind(this));
+    eventBus.on("gameRoomDeleted", this.handleGameRoomDeleted.bind(this));
   }
 
   private async handleConnection(socket: Socket) {
@@ -90,5 +91,11 @@ export class LobbyNamespace {
     console.log(data);
 
     this.namespace.emit("gameRoomCreated", data);
+  }
+
+  private async handleGameRoomDeleted(data: { roomId: string }) {
+    console.log("Game room deleted");
+    console.log(data);
+    this.namespace.emit("gameRoomDeleted", data);
   }
 }

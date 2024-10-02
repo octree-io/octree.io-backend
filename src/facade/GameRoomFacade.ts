@@ -116,13 +116,15 @@ class GameRoomFacade {
         const currentTime = new Date().getTime();
         const roundEndTime = new Date(currentRoundStartTime).getTime() + (roundDuration * 1000);
         const timeRemaining = roundEndTime - currentTime;
+        const roomId = room.roomId;
+        const roomName = room.roomName;
 
         if (timeRemaining <= 0) {
-          console.log(`[loadExistingRooms] Deleting room ${room.roomName} with roomId=[${room.roomId}] due to inactivity or expiration`);
-
-          await this.deleteRoom(room.roomId);
+          console.log(`[loadExistingRooms] Deleting room ${roomName} with roomId=[${roomId}] due to inactivity or expiration`);
+          eventBus.emit("gameRoomDeleted", { roomId });
+          await this.deleteRoom(roomId);
         } else {
-          await this.scheduleNextRound(room.roomId, timeRemaining);
+          await this.scheduleNextRound(roomId, timeRemaining);
         }
       });
     } catch (error) {
@@ -149,6 +151,7 @@ class GameRoomFacade {
 
     if (users.length === 0 && !isFirstRound) {
       console.log(`[startNextRound] Deleting room ${roomId} due to inactivity`);
+      eventBus.emit("gameRoomDeleted", { roomId });
       await this.deleteRoom(roomId);
       return;
     }
