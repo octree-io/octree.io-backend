@@ -4,6 +4,7 @@ import { DecodedToken } from "../../server";
 import { isTokenValid } from "../../utils/tokenValidator";
 import gameRoomFacade from "../../facade/GameRoomFacade";
 import lobbyFacade from "../../facade/LobbyFacade";
+import eventBus from "../../utils/eventBus";
 
 export class LobbyNamespace {
   private io: Server;
@@ -14,6 +15,8 @@ export class LobbyNamespace {
     this.namespace = this.io.of("/lobby");
 
     this.namespace.on("connection", this.handleConnection.bind(this));
+
+    eventBus.on("gameRoomCreated", this.handleGameRoomCreated.bind(this));
   }
 
   private async handleConnection(socket: Socket) {
@@ -80,5 +83,12 @@ export class LobbyNamespace {
     if (userInstances.length == 0) {
       this.namespace.emit("userLeft", { ...user });
     }
+  }
+
+  private async handleGameRoomCreated(data: { roomId: string, roomName: string }) {
+    console.log(`Game room created`);
+    console.log(data);
+
+    this.namespace.emit("gameRoomCreated", data);
   }
 }

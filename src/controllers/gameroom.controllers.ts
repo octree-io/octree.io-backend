@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import gameRoomFacade from "../facade/GameRoomFacade";
+import eventBus from "../utils/eventBus";
 
 export const createGameRoom = async (req: Request, res: Response, next: NextFunction) => {
   const { roomName } = req.body;
@@ -15,6 +16,8 @@ export const createGameRoom = async (req: Request, res: Response, next: NextFunc
 
   const username = user.username;
   const roomId = await gameRoomFacade.createRoom(username, roomName);
+
+  eventBus.emit("gameRoomCreated", { roomId, roomName });
 
   return res.status(200).json({ roomId });
 };
