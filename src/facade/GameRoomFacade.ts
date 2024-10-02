@@ -28,7 +28,7 @@ class GameRoomFacade {
 
   async doesRoomExist(roomId: string) {
     const result = await knex("game_rooms").where({ room_id: roomId }).first();
-    return result !== null;
+    return !!result;
   }
 
   async addUserToRoom(roomId: string, username: string, profilePic: string, socketId: string) {
