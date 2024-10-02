@@ -130,15 +130,15 @@ class GameRoomFacade {
     }
   }
 
-  async scheduleNextRound(roomId: string, roundDuration: number) {
+  async scheduleNextRound(roomId: string, roundDuration: number, isFirstRound: boolean = false) {
     console.log(`[scheduleNextRound] Scheduling next round for room ${roomId} for duration ${roundDuration / 1000}s`);
 
     setTimeout(async () => {
-      await this.startNextRound(roomId);
+      await this.startNextRound(roomId, isFirstRound);
     }, roundDuration);
   }
 
-  async startNextRound(roomId: string) {
+  async startNextRound(roomId: string, isFirstRound: boolean) {
     const room = await this.getRoomById(roomId);
     const users = await this.getUsersInRoom(roomId);
 
@@ -147,13 +147,13 @@ class GameRoomFacade {
       return;
     }
 
-    if (users.length === 0) {
+    if (users.length === 0 && !isFirstRound) {
       console.log(`[startNextRound] Deleting room ${roomId} due to inactivity`);
       await this.deleteRoom(roomId);
       return;
     }
 
-    console.log(`[startNextRound] Starting next round for room ${room.roomName} with roomId ${roomId}`);
+    console.log(`[startNextRound] Starting next round for room ${room.roomName} with roomId ${roomId} ${isFirstRound && "for the first round"}`);
 
     const currentRoundStartTime = (await this.updateCurrentRoundStartTime(roomId)).getTime();
     const roundDuration = room.roundDuration * 1000;
