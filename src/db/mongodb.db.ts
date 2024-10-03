@@ -35,5 +35,5 @@ class MongodbClient {
   }
 }
 
-const mongodbClient = new MongodbClient();
-export default mongodbClient;
+const mongoDbClient = new MongodbClient();
+export default mongoDbClient;

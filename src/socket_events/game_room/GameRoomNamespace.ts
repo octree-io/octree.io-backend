@@ -4,6 +4,7 @@ import { DecodedToken } from "../../server";
 import { isTokenValid } from "../../utils/tokenValidator";
 import gameRoomFacade from "../../facade/GameRoomFacade";
 import eventBus from "../../utils/eventBus";
+import problemsFacade from "../../facade/ProblemsFacade";
 
 export class GameRoomNamespace {
   private io: Server;
@@ -64,10 +65,31 @@ export class GameRoomNamespace {
     const username = decodedToken.username;
     const profilePic = decodedToken.profilePic;
 
+    const problemId = await gameRoomFacade.getCurrentProblemForRoom(this.roomId);
+    const problem = await problemsFacade.getProblemById(problemId);
+
+    let currentProblem = {};
+
+    if (problem) {
+      currentProblem = {
+        name: problem.name,
+        slug: problem.slug,
+        description: problem.description,
+        difficulty: problem.difficulty,
+        starterCode: problem.starterCode,
+        sampleTestCases: problem.sampleTestCases,
+        constraints: problem.constraints,
+        topics: problem.topics,
+        companies: problem.companies,
+      };
+    }
+
     socket.emit("currentUsers", await gameRoomFacade.getUsersInRoom(this.roomId));
     socket.emit("nextRoundStarted", {
       currentRoundStartTime: room?.currentRoundStartTime,
       roundDuration: room?.roundDuration * 1000,
+      currentProblem,
+      initialJoin: true,
     });
 
     this.namespace.to(this.roomId).emit("userJoined", {
@@ -102,9 +124,10 @@ export class GameRoomNamespace {
     await gameRoomFacade.removeUserFromRoom(user.roomId, user.username, user.socketId);
   }
 
-  private async handleNextRoundStarted(data: { roomId: string, currentRoundStartTime: number, roundDuration: number }) {
+  private async handleNextRoundStarted(data: { roomId: string, currentRoundStartTime: number, roundDuration: number, currentProblem: any }) {
     const currentRoundStartTime = data.currentRoundStartTime;
     const roundDuration = data.roundDuration;
-    this.namespace.to(data.roomId).emit("nextRoundStarted", { currentRoundStartTime, roundDuration });
+    const currentProblem = data.currentProblem;
+    this.namespace.to(data.roomId).emit("nextRoundStarted", { currentRoundStartTime, roundDuration, currentProblem });
   }
 }

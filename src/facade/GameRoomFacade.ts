@@ -1,6 +1,9 @@
 import knex from "../db/knex.db";
+import mongoDbClient from "../db/mongodb.db";
 import eventBus from "../utils/eventBus";
+import { getRandomNumber } from "../utils/numberUtil";
 import { getRandomString } from "../utils/stringUtil";
+import problemsFacade from "./ProblemsFacade";
 
 class GameRoomFacade {
   constructor() {}
@@ -83,6 +86,15 @@ class GameRoomFacade {
     };
   }
 
+  async getCurrentProblemForRoom(roomId: string) {
+    const room = await knex("game_rooms").where({ room_id: roomId }).first();
+    if (!room) {
+      console.log(`[getCurrentProblemForRoom] Room ${roomId} not found`);
+      return;
+    }
+    return room.current_problem_id;
+  }
+
   async removeUserFromRoom(roomId: string, username: string, socketId: string) {
     await knex("game_room_users").where({ room_id: roomId, username, socket_id: socketId }).del();
   }
@@ -103,6 +115,12 @@ class GameRoomFacade {
       .update({ current_round_start_time: currentDate });
 
     return currentDate;
+  }
+
+  async updateCurrentProblemId(roomId: string, problemId: number) {
+    await knex("game_rooms")
+      .where({ room_id: roomId })
+      .update({ current_problem_id: problemId });
   }
 
   async loadExistingRooms() {
@@ -156,13 +174,38 @@ class GameRoomFacade {
       return;
     }
 
-    console.log(`[startNextRound] Starting next round for room ${room.roomName} with roomId ${roomId} ${isFirstRound && "for the first round"}`);
+    console.log(`[startNextRound] Starting next round for room ${room.roomName} with roomId ${roomId} ${isFirstRound ? "for the first round" : ""}`);
+
+    const mongoDbInstance = mongoDbClient.getDb();
+    let currentProblem = {};
+    if (mongoDbInstance) {
+      const problemsCollection = mongoDbInstance?.collection("problems");
+      const numProblems = await problemsCollection?.countDocuments();
+      const problemId = getRandomNumber(1, numProblems);
+      const randomProblem = await problemsFacade.getProblemById(problemId);
+
+      if (randomProblem) {
+        currentProblem = {
+          name: randomProblem.name,
+          slug: randomProblem.slug,
+          description: randomProblem.description,
+          difficulty: randomProblem.difficulty,
+          starterCode: randomProblem.starterCode,
+          sampleTestCases: randomProblem.sampleTestCases,
+          constraints: randomProblem.constraints,
+          topics: randomProblem.topics,
+          companies: randomProblem.companies,
+        };
+
+        await this.updateCurrentProblemId(roomId, problemId);
+      }
+    }
 
     const currentRoundStartTime = (await this.updateCurrentRoundStartTime(roomId)).getTime();
     const roundDuration = room.roundDuration * 1000;
     this.scheduleNextRound(roomId, roundDuration);
 
-    eventBus.emit("nextRoundStarted", { roomId, currentRoundStartTime, roundDuration });
+    eventBus.emit("nextRoundStarted", { roomId, currentRoundStartTime, roundDuration, currentProblem });
   }
 }
 
