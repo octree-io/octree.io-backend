@@ -4,13 +4,14 @@ export const rubyBasicHarness = (code: string, args: any, testCases: any[], answ
 ${code}
 
 def run_test_cases
-    solution = Solution.new
+    # solution = Solution.new
     test_cases = ${jsonToRuby(testCases)}
     rbArgs = ${jsonToRuby(args)}
 
     test_cases.each_with_index do |test_case, i|
         args = rbArgs.keys.map { |arg| test_case[arg] }
-        result = solution.solve(*args)
+        # result = solution.solve(*args)
+        result = solve(*args)
 
         # Submission
         if test_case.has_key?('output')
