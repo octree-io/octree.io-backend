@@ -26,29 +26,24 @@ export const jsonToRuby = (obj: any): string => {
   }
 }
 
-export const jsonToGo = (data: any): string =>  {
-  if (Array.isArray(data)) {
-      // If the data is an array, recursively convert each element
-      return '[]interface{}{' + data.map(jsonToGo).join(', ') + '}';
-  } else if (typeof data === 'object' && data !== null) {
-      // If the data is an object, recursively convert each key-value pair
-      let objectEntries = Object.entries(data)
-          .map(([key, value]) => `"${key}": ${jsonToGo(value)}`)
-          .join(', ');
-      return `map[string]interface{}{${objectEntries}}`;
-  } else if (typeof data === 'string') {
-      // If the data is a string, wrap it in double quotes
-      return `"${data}"`;
-  } else if (typeof data === 'number') {
-      // If the data is a number, return it as-is
-      return data.toString();
-  } else if (typeof data === 'boolean') {
-      // Convert boolean values to "true" or "false"
-      return data ? 'true' : 'false';
-  } else if (data === null) {
-      // Convert null values to Go's zero value "nil"
-      return 'nil';
-  } else {
-      throw new Error(`Unsupported data type: ${typeof data}`);
+export const jsonToGo = (data: any): string => {
+  if (data === null) return "nil";
+  if (typeof data === "boolean") return data ? "true" : "false";
+  if (Array.isArray(data)) return `[]${getGoType(data[0])}{${data.map(jsonToGo).join(", ")}}`;
+  if (typeof data === "object") {
+    return `{${Object.entries(data)
+      .map(([key, value]) => `"${key}": ${jsonToGo(value)}`)
+      .join(", ")}}`;
   }
-}
+  if (typeof data === "string") return `"${data}"`;
+  return String(data);
+};
+
+const getGoType = (data: any): string => {
+  if (Array.isArray(data)) return `[]${getGoType(data[0])}`;
+  if (typeof data === "number") return "int";
+  if (typeof data === "boolean") return "bool";
+  if (typeof data === "string") return "string";
+  if (typeof data === "object") return "struct";
+  return "interface{}";
+};
