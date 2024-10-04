@@ -17,6 +17,7 @@ export class GameRoomNamespace {
     this.roomId = "default";
 
     eventBus.on("nextRoundStarted", this.handleNextRoundStarted.bind(this));
+    eventBus.on("submitCodeResponse", this.handleSubmitCodeResponse.bind(this));
 
     this.namespace.on("connection", this.handleConnection.bind(this));
   }
@@ -129,5 +130,14 @@ export class GameRoomNamespace {
     const roundDuration = data.roundDuration;
     const currentProblem = data.currentProblem;
     this.namespace.to(data.roomId).emit("nextRoundStarted", { currentRoundStartTime, roundDuration, currentProblem });
+  }
+
+  private async handleSubmitCodeResponse(data: { roomId: string, user: any, result: any, language: string }) {
+    this.namespace.to(data.roomId).emit("submitCodeResult", {
+      user: data.user.username,
+      responseCode: data.result.code,
+      execTime: data.result.execTime,
+      language: data.language,
+    });
   }
 }

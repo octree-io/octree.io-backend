@@ -53,7 +53,6 @@ class CompilerExplorerFacade {
         },
       });
 
-      console.log("Compilation result:", response.data);
       return response.data;
     } catch (error: any) {
       console.error("Error compiling code:", error.response ? error.response.data : error.message);
