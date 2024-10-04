@@ -45,3 +45,11 @@ CREATE TABLE IF NOT EXISTS lobby_users (
   socket_id VARCHAR(255) DEFAULT 'undefined',
   PRIMARY KEY (username, socket_id)
 );
+
+CREATE TABLE IF NOT EXISTS room_logs (
+  id SERIAL PRIMARY KEY,
+  room_id VARCHAR(255) NOT NULL,
+  start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  end_time TIMESTAMP,
+  max_users INT
+);
