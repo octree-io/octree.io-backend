@@ -181,7 +181,18 @@ class GameRoomFacade {
     if (mongoDbInstance) {
       const problemsCollection = mongoDbInstance?.collection("problems");
       const numProblems = await problemsCollection?.countDocuments();
-      const problemId = getRandomNumber(1, numProblems);
+
+      const previousProblemId = await this.getCurrentProblemForRoom(roomId);
+      let problemId = getRandomNumber(1, numProblems);
+
+      if (numProblems > 1) {
+        while (problemId === previousProblemId) {
+          problemId = getRandomNumber(1, numProblems);
+        }
+      }
+
+      console.log(`[startNextRound] Choosing problemId=[${problemId}] for the next round's problem`);
+
       const randomProblem = await problemsFacade.getProblemById(problemId);
 
       if (randomProblem) {
