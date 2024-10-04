@@ -30,6 +30,9 @@ const knexConfig: { [key: string]: Knex.Config } = {
       password: `${process.env.DB_PASSWORD}`,
       host: `${process.env.DB_HOST}`,
       port: Number(`${process.env.DB_PORT}`),
+      ssl: {
+        rejectUnauthorized: false,
+      },
     },
     migrations: {
       tableName: "knex_migrations",
