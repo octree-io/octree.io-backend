@@ -19,7 +19,10 @@ export const cppBasicHarness = (
 #include <stack>
 #include <deque>
 #include <cstdlib>
+#include <climits>
 #include <any>
+
+using namespace std;
 
 ${cppDataStructures}
 
