@@ -7,6 +7,8 @@ import (
   "reflect"
   "sort"
   "os"
+  "math"
+  "strconv"
 )
 
 ${code}
@@ -76,7 +78,13 @@ func sortSlice(data interface{}) interface{} {
   return temp
 }
 
+func null() {
+  _ = math.Pi
+  _ = strconv.Itoa
+}
+
 func main() {
+  null()
   runTestCases()
 }
 `;
