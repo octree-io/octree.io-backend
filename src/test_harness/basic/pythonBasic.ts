@@ -8,6 +8,7 @@ from typing import *
 import collections
 import array
 import bisect
+import heapq
 
 ${pythonDataStructures}
 
