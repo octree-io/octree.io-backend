@@ -77,8 +77,13 @@ loadExistingRoomsFromDb();
 new LobbyNamespace(io);
 new GameRoomNamespace(io);
 
-const handleExit = async (type: string) => {
+const handleExit = async (type: string, error: Error | null) => {
   console.log(`Got ${type}, shutting down`);
+
+  if (error) {
+    console.log("Error:", error.stack || error);
+  }
+
   console.log("Wiping out Lobby users");
   await lobbyFacade.removeAllUsers();
   console.log("Wiping out Game Room users");
@@ -86,8 +91,13 @@ const handleExit = async (type: string) => {
   process.exit();
 };
 
-process.on("SIGINT", async () => await handleExit("SIGINT"));
-process.on("SIGTERM", async () => await handleExit("SIGTERM"));
+process.on("uncaughtException", async (error) => await handleExit("uncaughtException", error));
+process.on("unhandledRejection", async (reason) => {
+  const error = reason instanceof Error ? reason : new Error(String(reason));
+  await handleExit("unhandledRejection", error);
+});
+process.on("SIGINT", async () => await handleExit("SIGINT", null));
+process.on("SIGTERM", async () => await handleExit("SIGTERM", null));
 
 const PORT: any = process.env.SERVER_PORT ?? 8000;
 httpServer.listen(PORT, () => console.log(`The server is running on port ${PORT}`));
