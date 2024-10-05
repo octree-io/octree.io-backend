@@ -13,6 +13,11 @@ ${pythonDataStructures}
 
 ${code}
 
+def sort_list(l):
+    if isinstance(l, list):
+        return sorted(sort_list(i) for i in l)
+    return l
+
 def run_test_cases():
     solution = Solution()
     test_cases = ${jsonToPython(testCases)}
@@ -28,8 +33,8 @@ def run_test_cases():
             result = solution.solve(*args)
 
             if answer_any_order and isinstance(result, list) and isinstance(expected_output, list):
-                result = sorted(result)
-                expected_output = sorted(expected_output)
+                result = sort_list(result)
+                expected_output = sort_list(expected_output)
 
             assert result == expected_output
         # Normal run
