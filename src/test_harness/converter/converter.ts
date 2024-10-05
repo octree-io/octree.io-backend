@@ -47,3 +47,15 @@ const getGoType = (data: any): string => {
   if (typeof data === "object") return "struct";
   return "interface{}";
 };
+
+export const jsonToRust = (value: any) => {
+  if (Array.isArray(value)) {
+    return `vec![${value.map(v => (typeof v === 'string' ? `"${v}"` : v)).join(', ')}]`;
+  } else if (typeof value === 'string') {
+    return `"${value}"`;
+  } else if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  } else {
+    return value;
+  }
+}

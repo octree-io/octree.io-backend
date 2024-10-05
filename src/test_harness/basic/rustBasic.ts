@@ -1,3 +1,5 @@
+import { jsonToRust } from "../converter/converter";
+
 export const rustBasicHarness = (code: string, args: any, testCases: any[], answerAnyOrder: boolean = false) => `
 use std::any::Any;
 use std::cmp::*;
@@ -18,44 +20,66 @@ pub struct Solution;
 
 ${code}
 
+// Recursive function to deeply sort nested vectors (list of lists)
+fn deep_sort<T: Ord>(list: &mut Vec<T>) {
+    list.sort_unstable();
+}
+
+// Sort and compare results, supporting nested vectors when answer_any_order is true
 fn compare_results(result: &dyn Any, expected: &dyn Any, answer_any_order: bool) -> bool {
     // Case 1: Vec<i32> comparison
     if let (Some(result_vec), Some(expected_vec)) = (result.downcast_ref::<Vec<i32>>(), expected.downcast_ref::<Vec<i32>>()) {
         if answer_any_order {
-            // Sort and compare
             let mut sorted_result = result_vec.clone();
             let mut sorted_expected = expected_vec.clone();
-            sorted_result.sort_unstable();
-            sorted_expected.sort_unstable();
+            deep_sort(&mut sorted_result);
+            deep_sort(&mut sorted_expected);
             return sorted_result == sorted_expected;
         }
         return result_vec == expected_vec;
     }
 
-    // Case 2: Vec<String> comparison
+    // Case 2: Vec<Vec<i32>> comparison (for list of lists)
+    if let (Some(result_vec), Some(expected_vec)) = (result.downcast_ref::<Vec<Vec<i32>>>(), expected.downcast_ref::<Vec<Vec<i32>>>()) {
+        if answer_any_order {
+            let mut sorted_result = result_vec.clone();
+            let mut sorted_expected = expected_vec.clone();
+            for r in &mut sorted_result {
+                deep_sort(r);
+            }
+            for e in &mut sorted_expected {
+                deep_sort(e);
+            }
+            deep_sort(&mut sorted_result);
+            deep_sort(&mut sorted_expected);
+            return sorted_result == sorted_expected;
+        }
+        return result_vec == expected_vec;
+    }
+
+    // Case 3: Vec<String> comparison
     if let (Some(result_vec), Some(expected_vec)) = (result.downcast_ref::<Vec<String>>(), expected.downcast_ref::<Vec<String>>()) {
         if answer_any_order {
-            // Sort and compare
             let mut sorted_result = result_vec.clone();
             let mut sorted_expected = expected_vec.clone();
-            sorted_result.sort_unstable();
-            sorted_expected.sort_unstable();
+            deep_sort(&mut sorted_result);
+            deep_sort(&mut sorted_expected);
             return sorted_result == sorted_expected;
         }
         return result_vec == expected_vec;
     }
 
-    // Case 3: Single String comparison
+    // Case 4: Single String comparison
     if let (Some(result_str), Some(expected_str)) = (result.downcast_ref::<String>(), expected.downcast_ref::<String>()) {
         return result_str == expected_str;
     }
 
-    // Case 4: Single i32 comparison
+    // Case 5: Single i32 comparison
     if let (Some(result_num), Some(expected_num)) = (result.downcast_ref::<i32>(), expected.downcast_ref::<i32>()) {
         return result_num == expected_num;
     }
 
-    // Case 5: Single bool comparison
+    // Case 6: Single bool comparison
     if let (Some(result_bool), Some(expected_bool)) = (result.downcast_ref::<bool>(), expected.downcast_ref::<bool>()) {
         return result_bool == expected_bool;
     }
@@ -80,7 +104,7 @@ fn clone_boxed_any(value: &Box<dyn Any>, arg_name: &str) -> Box<dyn Any> {
         i32, i64, f64, bool, char,
         String, &str,
         Vec<i32>, Vec<i64>, Vec<f64>, Vec<bool>, Vec<char>,
-        Vec<String>, Vec<&str>
+        Vec<String>, Vec<&str>, Vec<Vec<i32>>, Vec<Vec<String>>
     );
 }
 
@@ -89,7 +113,7 @@ fn print_result(result: &dyn std::fmt::Debug) {
 }
 
 fn main() {
-    let solution = Solution::new();
+    let solution = Solution;
 
     let test_cases: Vec<std::collections::HashMap<&str, Box<dyn Any>>> = vec![
         ${testCases.map((testCase, index) => {
@@ -105,13 +129,15 @@ fn main() {
                         return `test_case${index}.insert("${arg}", Box::new(${value}) as Box<dyn Any>);`;
                     } else if (type === 'string') {
                         return `test_case${index}.insert("${arg}", Box::new("${value}") as Box<dyn Any>);`;
+                    } else if (type === 'bool') {
+                        return `test_case${index}.insert("${arg}", Box::new(${value ? 'true' : 'false'}) as Box<dyn Any>);`;
                     } else {
                         return `test_case${index}.insert("${arg}", Box::new(${value}) as Box<dyn Any>);`;
                     }
                 }).join('\n')}
                 ${
-                  testCase.output
-                    ? `test_case${index}.insert("expected", Box::new(vec![${testCase.output.join(', ')}]) as Box<dyn Any>);`
+                  testCase.output !== undefined
+                    ? `test_case${index}.insert("expected", Box::new(${jsonToRust(testCase.output)}) as Box<dyn Any>);`
                     : ''
                 }
                 test_case${index}
@@ -129,20 +155,11 @@ fn main() {
             method_args.push(clone_boxed_any(value, arg_name));
         }
 
-        let result = solution.solve(${Object.keys(args)
-          .map((arg, idx) => {
-            const type = args[arg];
-            if (type === "int[]") {
-              return `method_args[${idx}].downcast_ref::<Vec<i32>>().unwrap().clone()`;
-            } else if (type === "int") {
-              return `*method_args[${idx}].downcast_ref::<i32>().unwrap()`;
-            } else if (type === "string") {
-              return `method_args[${idx}].downcast_ref::<String>().unwrap().clone()`;
-            } else {
-              return `method_args[${idx}]`;
-            }
-          })
-          .join(", ")});
+        let result = if let Some(arg) = method_args[0].downcast_ref::<String>() {
+            Solution::solve(arg.clone())
+        } else {
+            panic!("Failed to downcast method argument to String");
+        };
 
         if let Some(expected_box) = test_case.get("expected") {
             // Safely downcast expected to possible types
