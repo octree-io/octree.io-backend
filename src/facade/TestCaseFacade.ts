@@ -63,7 +63,13 @@ class TestCaseFacade {
       }));
     }
 
-    const wrappedCode = languageMapping[language]?.[problemCategory]?.(code, args, testCases, answerAnyOrder) || "";
+    let wrappedCode = "";
+    try {
+      wrappedCode = languageMapping[language]?.[problemCategory]?.(code, args, testCases, answerAnyOrder) || "";
+    } catch (error) {
+      console.log("[executeTestCases] Error while wrapping code:", error);
+    }
+
     const result = await compilerExplorerFacade.compile(language, wrappedCode);
     return result;
   }
