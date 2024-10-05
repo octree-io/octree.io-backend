@@ -1,4 +1,3 @@
-import { javaDataStructures } from "../data_structures/javaDataStructures";
 import { typeMappings } from "../type_mapping/typeMapping";
 
 export const javaBasicHarness = (code: string, args: any, testCases: any[], answerAnyOrder: boolean = false) => `
@@ -6,11 +5,10 @@ import java.util.*;
 import java.lang.*;
 import java.io.*;
 
-${javaDataStructures}
-
 ${code}
 
 class TestHelper {
+    @SuppressWarnings("unchecked")
     public static boolean compareResults(Object result, Object expected, boolean answerAnyOrder) {
         if (result instanceof int[] && expected instanceof int[]) {
             int[] resArray = (int[]) result;
@@ -31,7 +29,7 @@ class TestHelper {
                 Collections.sort((List<Comparable>) expList);
             }
 
-            return resList.equals(expList);
+            return compareListOfLists(resList, expList, answerAnyOrder);
         } else if (result instanceof Integer && expected instanceof Integer) {
             return result.equals(expected);
         } else if (result instanceof String && expected instanceof String) {
@@ -42,16 +40,54 @@ class TestHelper {
         return false;
     }
 
+    @SuppressWarnings("unchecked")
+    private static boolean compareListOfLists(List<?> result, List<?> expected, boolean answerAnyOrder) {
+        if (result.size() != expected.size()) {
+            return false;
+        }
+        for (int i = 0; i < result.size(); i++) {
+            Object resElement = result.get(i);
+            Object expElement = expected.get(i);
+            if (resElement instanceof List && expElement instanceof List) {
+                List<?> resSubList = (List<?>) resElement;
+                List<?> expSubList = (List<?>) expElement;
+                if (!compareListOfLists(resSubList, expSubList, answerAnyOrder)) {
+                    return false;
+                }
+            } else if (!resElement.equals(expElement)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static void printResult(Object result) {
         if (result instanceof int[]) {
             System.out.println(Arrays.toString((int[]) result));
         } else if (result instanceof List) {
-            System.out.println(result);
+            System.out.println(listToString((List<?>) result));
         } else if (result instanceof Integer || result instanceof String || result instanceof Boolean) {
             System.out.println(result);
         } else {
             System.out.println(result);
         }
+    }
+
+    private static String listToString(List<?> list) {
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < list.size(); i++) {
+            Object item = list.get(i);
+            if (item instanceof List) {
+                sb.append(listToString((List<?>) item));
+            } else {
+                sb.append(item.toString());
+            }
+            if (i != list.size() - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append("]");
+        return sb.toString();
     }
 }
 
@@ -74,6 +110,8 @@ class TestHarness {
               return `testCase${index}.put("${arg}", ${value});`;
             } else if (type === 'string') {
               return `testCase${index}.put("${arg}", "${value}");`;
+            } else if (type === 'List' || type === 'string[]') {
+              return `testCase${index}.put("${arg}", Arrays.asList(${value.map((v: any) => `"${v}"`).join(', ')}));`;
             } else {
               return `testCase${index}.put("${arg}", ${value});`;
             }
@@ -81,9 +119,9 @@ class TestHarness {
           ${
             testCase.output
               ? `testCase${index}.put("expected", ${
-                  typeof testCase.output === 'object'
-                    ? `new int[]{${testCase.output.join(', ')}}`
-                    : testCase.output
+                  Array.isArray(testCase.output)
+                    ? `Arrays.asList(${testCase.output.map((o: any) => Array.isArray(o) ? `Arrays.asList(${o.map((v: any) => `"${v}"`).join(', ')})` : `"${o}"`).join(', ')})`
+                    : `"${testCase.output}"`
                 });`
               : ''
           }
@@ -108,7 +146,6 @@ class TestHarness {
 
             if (testCase.get("expected") != null) {
                 if (!TestHelper.compareResults(result, expected, answerAnyOrder)) {
-                    System.out.println("Wrong answer");
                     System.exit(1);
                 }
             } else {
