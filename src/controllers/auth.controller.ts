@@ -24,6 +24,12 @@ const REFRESH_TOKEN_EXPIRY = "30d";
 export const passwordSignup = async (req: Request, res: Response, next: NextFunction) => {
   const { username, email, password } = req.body;
 
+  const usernameRegex = /^[a-zA-Z0-9-_]+$/;
+
+  if (!usernameRegex.test(username)) {
+    return res.status(400).json({ message: "Username can only contain letters, numbers, hyphens, and underscores. No spaces allowed." });
+  }
+
   try {
     const existingUser = await knex("users").whereRaw("LOWER(username) = ?", username.toLowerCase()).first();
     if (existingUser) {
