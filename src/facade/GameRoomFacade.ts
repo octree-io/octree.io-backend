@@ -4,6 +4,7 @@ import eventBus from "../utils/eventBus";
 import { getRandomNumber } from "../utils/numberUtil";
 import { getRandomString } from "../utils/stringUtil";
 import problemsFacade from "./ProblemsFacade";
+import { v4 as uuidv4 } from "uuid";
 
 class GameRoomFacade {
   constructor() {}
@@ -121,6 +122,32 @@ class GameRoomFacade {
     await knex("game_rooms")
       .where({ room_id: roomId })
       .update({ current_problem_id: problemId });
+  }
+
+  async storeSubmission(
+    roomId: string,
+    username: string | undefined,
+    problemId: number,
+    type: "run" | "submit",
+    language: string,
+    code: string,
+    outputJson: string,
+  ) {
+    const submissionId = uuidv4();
+
+    await knex("submissions")
+      .insert({
+        submission_id: submissionId,
+        room_id: roomId,
+        username,
+        problem_id: problemId,
+        type,
+        language,
+        code,
+        output: outputJson
+      });
+
+    return submissionId;
   }
 
   async loadExistingRooms() {

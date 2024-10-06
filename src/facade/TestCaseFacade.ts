@@ -34,7 +34,14 @@ const languageMapping: { [key: string]: any } = {
 };
 
 class TestCaseFacade {
-  async executeTestCases(roomId: string, language: string, code: string, dryRun: boolean = true) {
+  async executeTestCases(
+    roomId: string,
+    language: string,
+    code: string,
+    username: string | undefined,
+    type: "run" | "submit",
+    dryRun: boolean = true,
+  ) {
     const problemId = await gameRoomFacade.getCurrentProblemForRoom(roomId);
     const problem = await problemsFacade.getProblemById(problemId);
 
@@ -71,6 +78,13 @@ class TestCaseFacade {
     }
 
     const result = await compilerExplorerFacade.compile(language, wrappedCode);
+
+    if (code !== "") {
+      const outputJson = JSON.stringify(result, null, 2);
+      const submissionId = await gameRoomFacade.storeSubmission(roomId, username, problemId, type, language, code, outputJson);
+      return { ...result, submissionId };
+    }
+
     return result;
   }
 }

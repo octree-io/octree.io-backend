@@ -53,3 +53,15 @@ CREATE TABLE IF NOT EXISTS room_logs (
   end_time TIMESTAMP,
   max_users INT
 );
+
+CREATE TABLE IF NOT EXISTS submissions (
+  submission_id VARCHAR(255) PRIMARY KEY,
+  room_id VARCHAR(255) NOT NULL,
+  username VARCHAR(255) NOT NULL,
+  problem_id INT NOT NULL,
+  type VARCHAR(50),
+  language VARCHAR(50),
+  code TEXT,
+  output TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
