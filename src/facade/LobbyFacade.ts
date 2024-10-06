@@ -43,6 +43,35 @@ class LobbyFacade {
   async removeAllUsers() {
     await knex("lobby_users").del();
   }
+
+  async storeChatMessage(messageId: string, username: string, message: string) {
+    await knex("lobby_messages")
+      .insert({
+        message_id: messageId,
+        channel_id: "ac07cc31-6b93-47f1-843e-276556bf69e0", // #general
+        username,
+        message,
+      })
+  }
+
+  async loadChatHistory(messageLimit: number = 25) {
+    const messages = await knex("lobby_messages")
+      .select(
+        "lobby_messages.*",
+        "users.profile_pic"
+      )
+      .leftJoin("users", "lobby_messages.username", "=", "users.username")
+      .orderBy("lobby_messages.sent_at", "asc")
+      .limit(messageLimit);
+
+    return messages.map((message) => ({
+      messageId: message.message_id,
+      username: message.username,
+      profilePic: message.profile_pic,
+      message: message.message,
+      timestamp: new Date(message.sent_at).getTime(),
+    }));
+  }
 }
 
 const lobbyFacade = new LobbyFacade();

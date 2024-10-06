@@ -65,3 +65,18 @@ CREATE TABLE IF NOT EXISTS submissions (
   output TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS lobby_messages (
+  message_id VARCHAR(255) PRIMARY KEY,
+  channel_id VARCHAR(255),
+  username VARCHAR(255) NOT NULL,
+  message TEXT,
+  sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS lobby_channels (
+  channel_id VARCHAR(255) PRIMARY KEY,
+  channel_name VARCHAR(255) NOT NULL,
+  created_by VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

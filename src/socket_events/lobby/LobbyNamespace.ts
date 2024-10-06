@@ -5,6 +5,7 @@ import { isTokenValid } from "../../utils/tokenValidator";
 import gameRoomFacade from "../../facade/GameRoomFacade";
 import lobbyFacade from "../../facade/LobbyFacade";
 import eventBus from "../../utils/eventBus";
+import { v4 as uuidv4 } from "uuid";
 
 export class LobbyNamespace {
   private io: Server;
@@ -43,6 +44,7 @@ export class LobbyNamespace {
 
     socket.emit("activeRooms", await gameRoomFacade.retrieveRooms());
     socket.emit("currentUsers", await lobbyFacade.getUsers());
+    socket.emit("chatHistory", await lobbyFacade.loadChatHistory());
     this.namespace.emit("userJoined", { socketId: socket.id, username, profilePic });
 
     await lobbyFacade.addUserToLobby(username, profilePic, socket.id);
@@ -56,14 +58,20 @@ export class LobbyNamespace {
     socket.on("disconnect", () => this.handleDisconnect(socket));
   }
 
-  private handleMessage(socket: Socket, decodedToken: DecodedToken, message: string) {
+  private async handleMessage(socket: Socket, decodedToken: DecodedToken, message: string) {
+    const messageId = uuidv4();
+    const username = decodedToken.username;
+
     this.namespace.emit("chatMessage", {
+      messageId,
       socketId: socket.id,
-      username: decodedToken.username,
+      username,
       profilePic: decodedToken.profilePic,
       message,
       timestamp: Date.now()
     });
+
+    await lobbyFacade.storeChatMessage(messageId, username, message);
   }
 
   private async handleRetrieveRooms(socket: Socket) {
