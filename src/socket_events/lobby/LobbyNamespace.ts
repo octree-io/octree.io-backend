@@ -61,17 +61,18 @@ export class LobbyNamespace {
   private async handleMessage(socket: Socket, decodedToken: DecodedToken, message: string) {
     const messageId = uuidv4();
     const username = decodedToken.username;
+    const profilePic = decodedToken.profilePic;
 
     this.namespace.emit("chatMessage", {
       messageId,
       socketId: socket.id,
       username,
-      profilePic: decodedToken.profilePic,
+      profilePic,
       message,
       timestamp: Date.now()
     });
 
-    await lobbyFacade.storeChatMessage(messageId, username, message);
+    await lobbyFacade.storeChatMessage(messageId, username, profilePic, message);
   }
 
   private async handleRetrieveRooms(socket: Socket) {

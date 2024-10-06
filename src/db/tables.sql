@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS lobby_messages (
   message_id VARCHAR(255) PRIMARY KEY,
   channel_id VARCHAR(255),
   username VARCHAR(255) NOT NULL,
+  profile_pic VARCHAR(255),
   message TEXT,
   sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

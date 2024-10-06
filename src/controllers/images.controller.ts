@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { v4 as uuidv4 } from "uuid";
 import knex from "../db/knex.db";
-import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import path from "path";
 
 const CDN_URL = "cdn.octree.io";
-const DO_NOT_DELETE = "DO-NOT-DELETE";
 
 const s3 = new S3Client({
   endpoint: process.env.CLOUDFLARE_R2_ENDPOINT,
@@ -15,29 +14,6 @@ const s3 = new S3Client({
   },
   region: "auto",
 });
-
-const deletePreviousProfilePic = async (profilePic: string) => {
-  if (profilePic.indexOf(CDN_URL) !== -1) {
-    const imageName = profilePic.split(`${CDN_URL}/`)[1];
-
-    if (imageName.startsWith(DO_NOT_DELETE)) {
-      console.log(`Skipping deletion for profile picture ${profilePic}`);
-      return;
-    }
-
-    try {
-      const deleteParams = {
-        Bucket: process.env.CLOUDFLARE_R2_BUCKET_NAME!,
-        Key: `${imageName}`,
-      };
-
-      await s3.send(new DeleteObjectCommand(deleteParams));
-      console.log(`Previous image ${imageName} deleted successfully.`);
-    } catch (error) {
-      console.error(`Error deleting previous image ${imageName}:`, error);
-    }
-  }
-};
 
 export const changeProfilePic = async (req: Request, res: Response, next: NextFunction) => {
   const username = req.user?.username;
@@ -51,8 +27,6 @@ export const changeProfilePic = async (req: Request, res: Response, next: NextFu
   if (!file) {
     return res.status(400).json({ error: "No file uploaded" });
   }
-
-  deletePreviousProfilePic(profilePic);
 
   try {
     const fileExtension = path.extname(file.originalname);
