@@ -77,8 +77,6 @@ class TestCaseFacade {
       console.log("[executeTestCases] Error while wrapping code:", error);
     }
 
-    console.log(wrappedCode);
-
     const result = await compilerExplorerFacade.compile(language, wrappedCode);
 
     if (code !== "") {

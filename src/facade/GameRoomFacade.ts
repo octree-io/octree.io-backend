@@ -218,8 +218,6 @@ class GameRoomFacade {
         }
       }
 
-      problemId = 1;
-
       console.log(`[startNextRound] (Room ID ${roomId}) Choosing problemId=[${problemId}] for the next round's problem`);
 
       const randomProblem = await problemsFacade.getProblemById(problemId);
