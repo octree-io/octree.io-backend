@@ -234,7 +234,7 @@ export const gradeAnswers = async (req: Request, res: Response, next: NextFuncti
       .join("\n\n");
 
     const prompt = `
-      I want you to grade these answers for these questions. For each question, put either a Yes or No for whether or not it passes an interview. Briefly explain what the right answer is supposed to be. Be strict about the grading to make sure that the explanations are correct. It is acceptable if there are no specific examples unless the question specifically asks for examples.
+      I want you to grade these answers for these questions. For each question, put either a Yes or No for whether or not it passes an interview. Explain in-depth what the right answer is supposed to be. Be strict about the grading to make sure that the explanations are correct. It is acceptable if there are no specific examples unless the question specifically asks for examples.
 
       ${responses}
     `;
