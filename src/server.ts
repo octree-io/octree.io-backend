@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.routes";
 import executorRoutes from "./routes/executor.routes";
 import imagesRoutes from "./routes/images.routes";
 import gameRoomRoutes from "./routes/gameroom.routes";
+import triviaRoutes from "./routes/trivia.routes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
@@ -13,6 +14,7 @@ import { LobbyNamespace } from "./socket_events/lobby/LobbyNamespace";
 import lobbyFacade from "./facade/LobbyFacade";
 import gameRoomFacade from "./facade/GameRoomFacade";
 import { GameRoomNamespace } from "./socket_events/game_room/GameRoomNamespace";
+import triviaFacade from "./facade/TriviaFacade";
 
 export interface DecodedToken {
   userId: number;
@@ -52,6 +54,7 @@ router.use("/auth", authRoutes);
 router.use("/execute", executorRoutes);
 router.use("/images", imagesRoutes);
 router.use("/game-room", gameRoomRoutes);
+router.use("/trivia", triviaRoutes);
 
 router.use((req, res, next) => {
     const error = new Error("not found");
@@ -71,6 +74,7 @@ const io = new Server(httpServer, {
 
 const loadExistingRoomsFromDb = async () => {
   await gameRoomFacade.loadExistingRooms();
+  await triviaFacade.loadTriviaRoomsFromDb();
 };
 
 loadExistingRoomsFromDb();

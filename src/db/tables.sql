@@ -81,3 +81,41 @@ CREATE TABLE IF NOT EXISTS lobby_channels (
   created_by VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS trivia_question_banks (
+  question_bank_id VARCHAR(255) PRIMARY KEY,
+  title VARCHAR(255),
+  created_by VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS trivia_questions (
+  question_id VARCHAR(255) PRIMARY KEY,
+  question_bank_id VARCHAR(255),
+  question_text TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS trivia_rooms (
+  room_id VARCHAR(255) PRIMARY KEY,
+  question_bank_id VARCHAR(255),
+  round_duration INT DEFAULT 7200,
+  created_by VARCHAR(255),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS trivia_room_users (
+  room_id VARCHAR(255) NOT NULL,
+  username VARCHAR(255) NOT NULL,
+  profile_pic TEXT,
+  socket_id VARCHAR(255) DEFAULT 'undefined',
+  PRIMARY KEY (room_id, username, socket_id)
+);
+
+CREATE TABLE IF NOT EXISTS trivia_submissions (
+  submission_id VARCHAR(255) NOT NULL,
+  username VARCHAR(255),
+  prompt TEXT,
+  answer TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
