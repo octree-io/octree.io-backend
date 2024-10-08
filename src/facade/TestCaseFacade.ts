@@ -2,6 +2,7 @@ import { cppBasicHarness } from "../test_harness/basic/cppBasic";
 import { csharpBasicHarness } from "../test_harness/basic/csharpBasic";
 import { goBasicHarness } from "../test_harness/basic/goBasic";
 import { javaBasicHarness } from "../test_harness/basic/javaBasic";
+import { ocamlBasicHarness } from "../test_harness/basic/ocamlBasic";
 import { pythonBasicHarness } from "../test_harness/basic/pythonBasic";
 import { rubyBasicHarness } from "../test_harness/basic/rubyBasic";
 import { rustBasicHarness } from "../test_harness/basic/rustBasic";
@@ -30,6 +31,9 @@ const languageMapping: { [key: string]: any } = {
   },
   go: {
     basic: goBasicHarness,
+  },
+  ocaml: {
+    basic: ocamlBasicHarness,
   },
 };
 
