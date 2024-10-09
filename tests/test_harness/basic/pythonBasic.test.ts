@@ -1,7 +1,7 @@
 import { pythonBasicHarness } from "../../../src/test_harness/basic/pythonBasic";
 
-describe("test", () => {
-  test("should work", () => {
+describe("Python Basic Harness", () => {
+  test("happy case", () => {
     const code = `class Solution:
     def solve(self, s):
         return s == "abcdef"`;
