@@ -37,15 +37,16 @@ export const passwordSignup = async (req: Request, res: Response, next: NextFunc
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const profilePic = getRandomElement(DEFAULT_PROFILE_PICTURES);
 
     const [newUser] = await knex("users").insert({
       username,
       email,
       password: hashedPassword,
-      profile_pic: getRandomElement(DEFAULT_PROFILE_PICTURES),
+      profile_pic: profilePic,
     }).returning('*');
 
-    const accessToken = generateAccessToken({ userId: newUser.id, username: newUser.username });
+    const accessToken = generateAccessToken({ userId: newUser.id, username: newUser.username, profilePic });
     const refreshToken = generateRefreshToken({ userId: newUser.id });
 
     const refreshTokenExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
@@ -88,16 +89,17 @@ export const googleSignup = async (req: Request, res: Response, next: NextFuncti
 
   const baseUsername = googleInfo.email.split('@')[0];
   const username = await generateUniqueUsername(baseUsername);
+  const profilePic = googleInfo.picture || getRandomElement(DEFAULT_PROFILE_PICTURES);
 
   const [newUser] = await knex('users').insert({
     email: googleInfo.email,
     google_id: googleInfo.sub,
     username,
-    profile_pic: googleInfo.picture,
+    profile_pic: profilePic,
   }).returning('*');
 
   const refreshTokenExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-  const accessToken = generateAccessToken({ userId: newUser.id, username });
+  const accessToken = generateAccessToken({ userId: newUser.id, username, profilePic });
   const refreshToken = generateRefreshToken({ userId: newUser.id });
 
   await saveRefreshTokenToDb(newUser.id, refreshToken, refreshTokenExpiry);
