@@ -21,13 +21,13 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || "123456";
 const ACCESS_TOKEN_EXPIRY = "2h";
 const REFRESH_TOKEN_EXPIRY = "30d";
 
+const USERNAME_REGEX = /^[a-zA-Z0-9-_]{3,12}$/;
+
 export const passwordSignup = async (req: Request, res: Response, next: NextFunction) => {
   const { username, email, password } = req.body;
 
-  const usernameRegex = /^[a-zA-Z0-9-_]+$/;
-
-  if (!usernameRegex.test(username)) {
-    return res.status(400).json({ message: "Username can only contain letters, numbers, hyphens, and underscores. No spaces allowed." });
+  if (!USERNAME_REGEX.test(username)) {
+    return res.status(400).json({ message: "Username can only contain letters, numbers, hyphens, underscores and be between 3 and 12 characters" });
   }
 
   try {
@@ -284,6 +284,10 @@ export const changeUsername = async (req: Request, res: Response, next: NextFunc
 
   if (!desiredUsername) {
     return res.status(400).json({ message: "Invalid desired username" });
+  }
+
+  if (!USERNAME_REGEX.test(desiredUsername)) {
+    return res.status(400).json({ message: "Username can only contain letters, numbers, hyphens, underscores and be between 3 and 12 characters" });
   }
 
   if (await isUsernameTaken(desiredUsername)) {
