@@ -21,6 +21,8 @@ export const jsonToRuby = (obj: any): string => {
       return `{${entries.join(', ')}}`;
   } else if (typeof obj === 'string') {
       return `"${obj}"`;
+  } else if (obj === null) {
+      return 'nil';
   } else {
       return String(obj);
   }
