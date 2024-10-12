@@ -117,13 +117,35 @@ class TestHarness {
             }
           }).join('\n')}
           ${
-            testCase.output
-              ? `testCase${index}.put("expected", ${
-                  Array.isArray(testCase.output)
-                    ? `Arrays.asList(${testCase.output.map((o: any) => Array.isArray(o) ? `Arrays.asList(${o.map((v: any) => `"${v}"`).join(', ')})` : `"${o}"`).join(', ')})`
-                    : `"${testCase.output}"`
+            testCase.output !== undefined && testCase.output !== null
+                ? `testCase${index}.put("expected", ${
+                    Array.isArray(testCase.output)
+                        ? `Arrays.asList(${testCase.output.map((o: any) => 
+                            Array.isArray(o) 
+                                ? `Arrays.asList(${o.map((v: any) => 
+                                    v === null
+                                        ? 'null'
+                                        : (typeof v === 'string') 
+                                            ? `"${v}"`
+                                            : (typeof v === 'number' || typeof v === 'boolean' || typeof v === 'bigint')
+                                                ? `${v}`
+                                                : `"${v}"`).join(', ')})`
+                                : o === null
+                                    ? 'null'
+                                    : (typeof o === 'string')
+                                        ? `"${o}"`
+                                        : (typeof o === 'number' || typeof o === 'boolean' || typeof o === 'bigint')
+                                            ? `${o}`
+                                            : `"${o}"`).join(', ')})`
+                        : testCase.output === null
+                            ? 'null'
+                            : (typeof testCase.output === 'string')
+                                ? `"${testCase.output}"`
+                                : (typeof testCase.output === 'number' || typeof testCase.output === 'boolean' || typeof testCase.output === 'bigint')
+                                    ? `${testCase.output}`
+                                    : `"${testCase.output}"`
                 });`
-              : ''
+                : ''
           }
           testCases.add(testCase${index});
           `;
