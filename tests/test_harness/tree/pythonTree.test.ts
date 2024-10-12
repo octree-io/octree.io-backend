@@ -113,7 +113,7 @@ def tree_to_list(root):
             queue.append(node.right)
         else:
             result.append(None)
-    # Remove trailing None's
+
     while result and result[-1] is None:
         result.pop()
     return result
@@ -263,7 +263,7 @@ def tree_to_list(root):
             queue.append(node.right)
         else:
             result.append(None)
-    # Remove trailing None's
+
     while result and result[-1] is None:
         result.pop()
     return result
