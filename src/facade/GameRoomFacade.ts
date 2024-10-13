@@ -124,6 +124,12 @@ class GameRoomFacade {
       .update({ current_problem_id: problemId });
   }
 
+  async updateRoundDuration(roomId: string, roundDuration: number) {
+    await knex("game_rooms")
+      .where({ room_id: roomId })
+      .update({ round_duration: roundDuration });
+  }
+
   async storeSubmission(
     roomId: string,
     username: string | undefined,
@@ -188,6 +194,7 @@ class GameRoomFacade {
   async startNextRound(roomId: string, isFirstRound: boolean) {
     const room = await this.getRoomById(roomId);
     const users = await this.getUsersInRoom(roomId);
+    let currentRoundDuration = 600;
 
     if (!room) {
       console.log(`[startNextRound] Room ${roomId} does not exist`);
@@ -222,6 +229,26 @@ class GameRoomFacade {
 
       const randomProblem = await problemsFacade.getProblemById(problemId);
 
+      switch (randomProblem?.difficulty) {
+        case "easy":
+          const TEN_MINUTES = 10 * 60;
+          currentRoundDuration = TEN_MINUTES;
+          this.updateRoundDuration(roomId, TEN_MINUTES);
+          break;
+
+        case "medium":
+          const TWENTY_MINUTES = 20 * 60;
+          currentRoundDuration = TWENTY_MINUTES;
+          this.updateRoundDuration(roomId, TWENTY_MINUTES);
+          break;
+
+        case "hard":
+          const THIRTY_MINUTES = 30 * 60;
+          currentRoundDuration = THIRTY_MINUTES;
+          this.updateRoundDuration(roomId, THIRTY_MINUTES);
+          break;
+      }
+
       if (randomProblem) {
         currentProblem = {
           name: randomProblem.name,
@@ -240,7 +267,7 @@ class GameRoomFacade {
     }
 
     const currentRoundStartTime = (await this.updateCurrentRoundStartTime(roomId)).getTime();
-    const roundDuration = room.roundDuration * 1000;
+    const roundDuration = currentRoundDuration * 1000;
     this.scheduleNextRound(roomId, roundDuration);
 
     eventBus.emit("nextRoundStarted", { roomId, currentRoundStartTime, roundDuration, currentProblem });
