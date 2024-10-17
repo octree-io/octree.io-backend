@@ -1,3 +1,3 @@
 # octree.io-backend
-Backend service for octree.io
+Backend API for octree.io
  
