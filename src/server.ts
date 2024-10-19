@@ -15,6 +15,7 @@ import lobbyFacade from "./facade/LobbyFacade";
 import gameRoomFacade from "./facade/GameRoomFacade";
 import { GameRoomNamespace } from "./socket_events/game_room/GameRoomNamespace";
 import triviaFacade from "./facade/TriviaFacade";
+import { compilationRequestsQueueListener } from "./mq/CompilationResponsesQueueListener";
 
 export interface DecodedToken {
   userId: number;
@@ -80,6 +81,7 @@ const loadExistingRoomsFromDb = async () => {
 loadExistingRoomsFromDb();
 new LobbyNamespace(io);
 new GameRoomNamespace(io);
+compilationRequestsQueueListener();
 
 const handleExit = async (type: string, error: Error | null) => {
   console.log(`Got ${type}, shutting down`);

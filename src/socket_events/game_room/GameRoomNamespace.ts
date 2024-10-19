@@ -6,6 +6,19 @@ import gameRoomFacade from "../../facade/GameRoomFacade";
 import eventBus from "../../utils/eventBus";
 import problemsFacade from "../../facade/ProblemsFacade";
 
+interface CompilationResponse {
+  submissionId: string;
+  socketId: string;
+  roomId: string;
+  username: string;
+  language: string;
+  type: string;
+  status: string;
+  stdout: string;
+  stderr: string;
+  execTime: string;
+}
+
 export class GameRoomNamespace {
   private io: Server;
   private namespace;
@@ -17,7 +30,7 @@ export class GameRoomNamespace {
     this.roomId = "default";
 
     eventBus.on("nextRoundStarted", this.handleNextRoundStarted.bind(this));
-    eventBus.on("submitCodeResponse", this.handleSubmitCodeResponse.bind(this));
+    eventBus.on("compilationResponse", this.handleCompilationResponse.bind(this));
 
     this.namespace.on("connection", this.handleConnection.bind(this));
   }
@@ -132,12 +145,29 @@ export class GameRoomNamespace {
     this.namespace.to(data.roomId).emit("nextRoundStarted", { currentRoundStartTime, roundDuration, currentProblem });
   }
 
-  private async handleSubmitCodeResponse(data: { roomId: string, user: any, result: any, language: string }) {
-    this.namespace.to(data.roomId).emit("submitCodeResult", {
-      user: data.user.username,
-      responseCode: data.result.code,
-      execTime: data.result.execTime,
-      language: data.language,
-    });
+  private async handleCompilationResponse(data: CompilationResponse) {
+    if (data.type === "submit") {
+      this.namespace.sockets.get(data.socketId)?.emit("compilationResponse", {
+        submissionId: data.submissionId,
+        socketId: data.socketId,
+        roomId: data.roomId,
+        username: data.username,
+        language: data.language,
+        type: data.type,
+        status: data.status,
+        stdout: "", // This should be hidden from the user because they contain judge test case answers
+        stderr: "",
+        execTime: data.execTime
+      });
+
+      this.namespace.to(data.roomId).emit("submitCodeResult", {
+        user: data.username,
+        responseCode: data.status === "SUCCEEDED" ? 0 : 1,
+        execTime: data.execTime,
+        language: data.language,
+      });
+    } else {
+      this.namespace.sockets.get(data.socketId)?.emit("compilationResponse", data);
+    }
   }
 }
