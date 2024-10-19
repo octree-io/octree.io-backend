@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   language VARCHAR(50),
   code TEXT,
   output TEXT,
+  status VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
