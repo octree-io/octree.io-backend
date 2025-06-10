@@ -7,6 +7,7 @@ import executorRoutes from "./routes/executor.routes";
 import imagesRoutes from "./routes/images.routes";
 import gameRoomRoutes from "./routes/gameroom.routes";
 import triviaRoutes from "./routes/trivia.routes";
+import practiceRoomRoutes from "./routes/practiceroom.routes";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { Server } from "socket.io";
@@ -56,6 +57,7 @@ router.use("/execute", executorRoutes);
 router.use("/images", imagesRoutes);
 router.use("/game-room", gameRoomRoutes);
 router.use("/trivia", triviaRoutes);
+router.use("/practice-room", practiceRoomRoutes);
 
 router.use((req, res, next) => {
     const error = new Error("not found");
