@@ -37,6 +37,11 @@ export const getLeetcodeProblem = async (req: Request, res: Response, next: Next
   
     problem = await problemsFacade.getRawProblemFromLeetcode(titleSlug);
 
+    if (!problem.data.question.content) {
+      console.log("Likely a Leetcode premium problem that we don't have access to");
+      return res.status(400).json({ error: "Invalid LeetCode problem URL. This is likely a premium problem." });
+    }
+
     await problemsFacade.storeProblemToCache(problem);
   } else {
     console.log("Problem found in cache, retrieving it from cache");
