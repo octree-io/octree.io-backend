@@ -104,6 +104,10 @@ class GameRoomFacade {
     await knex("game_rooms").where({ room_id: roomId }).del();
   }
 
+  async deleteUsersFromRoom(roomId: string) {
+    await knex("game_room_users").where({ room_id: roomId }).del();
+  }
+
   async removeAllUsersFromAllRooms() {
     await knex("game_room_users").del();
   }
@@ -171,6 +175,12 @@ class GameRoomFacade {
         const roomName = room.roomName;
 
         if (timeRemaining <= 0) {
+          // Sometimes there can be users still in a room on reload so we need to delete them too if we're deleting a room
+          const currentUsersInRoom = await this.getUsersInRoom(roomId);
+          if (currentUsersInRoom.length > 0) {
+            await this.deleteUsersFromRoom(roomId);
+          }
+
           console.log(`[loadExistingRooms] Deleting room ${roomName} with roomId=[${roomId}] due to inactivity or expiration`);
           eventBus.emit("gameRoomDeleted", { roomId });
           await this.deleteRoom(roomId);
